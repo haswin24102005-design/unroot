@@ -1,34 +1,44 @@
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = process.env.REWRITEAI_API_KEY || '';
+app.post("/humanize", async (req, res) => {
+  const text = req.body.text;
 
-app.post('/humanize', async (req, res) => {
-  const { text } = req.body;
-  if (!text) return res.status(400).json({ error: 'No text provided' });
+  const prompt = `
+Rewrite this text to sound fully natural, human, and fluent.
+Keep meaning exactly the same:
 
-  try {
-    const response = await fetch('https://rewriteai.com/api/v1/humanize', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({ text })
-    });
+${text}
+`;
 
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+      process.env.GOOGLE_API_KEY,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  const output =
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "Error generating response";
+
+  res.json({ result: output });
 });
 
-app.get('/', (req, res) => res.send('unrobot proxy running'));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`listening on ${PORT}`));
+app.listen(process.env.PORT || 3000, () =>
+  console.log("Server running")
+);
