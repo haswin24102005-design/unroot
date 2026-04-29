@@ -1,65 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>unrobot</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:#ffffff;color:#1a1917;font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
-.box{width:100%;max-width:820px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:12px}
-@media(max-width:560px){.box{grid-template-columns:1fr}}
-textarea{width:100%;height:340px;resize:none;background:#fff;border:1px solid #e2ddd7;border-radius:16px;padding:20px;font-size:15px;font-family:'Figtree',sans-serif;color:#1a1917;line-height:1.7;outline:none;transition:border-color .15s}
-textarea::placeholder{color:#a09a93}
-textarea:focus{border-color:#a09a93}
-.out{background:#fff;border:1px solid #e2ddd7;border-radius:16px;padding:20px;font-size:15px;font-family:'Figtree',sans-serif;color:#1a1917;line-height:1.7;height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
-.ph{color:#a09a93}
-.bottom{grid-column:1/-1;display:flex;justify-content:center}
-button{padding:12px 36px;font-size:15px;font-weight:500;font-family:'Figtree',sans-serif;background:#ff5c35;color:#fff;border:none;border-radius:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px}
-button:hover{background:#e8472a;transform:translateY(-1px)}
-button:active{transform:translateY(0)}
-button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
-@keyframes sp{to{transform:rotate(360deg)}}
-</style>
+  <title>AI Humanizer</title>
 </head>
 <body>
-<div class="box">
-  <textarea id="inp" placeholder="paste ai text here..."></textarea>
-  <div class="out" id="out"><span class="ph">human version appears here...</span></div>
-  <div class="bottom">
-    <button id="btn" onclick="run()"><span id="btxt">do it</span></button>
-  </div>
-</div>
-<script>
-// Replace this with your Railway URL after deploying
-const PROXY = 'https://YOUR-RAILWAY-URL.railway.app/humanize';
 
-async function run(){
-  const inp = document.getElementById('inp').value.trim();
-  if(!inp) return;
-  const btn = document.getElementById('btn'), btxt = document.getElementById('btxt'), out = document.getElementById('out');
-  btn.disabled = true;
-  btxt.innerHTML = '<span class="spin"></span>';
-  out.innerHTML = '<span class="ph">working...</span>';
-  try{
-    const r = await fetch(PROXY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: inp })
-    });
-    const d = await r.json();
-    if(d.error) throw new Error(d.error);
-    const result = d.humanized_text || d.result || d.text || d.output || JSON.stringify(d);
-    out.textContent = result;
-  } catch(e){
-    out.innerHTML = '<span class="ph">something went wrong: ' + e.message + '</span>';
-  }
-  btn.disabled = false; btxt.textContent = 'do it';
+<h2>AI Humanizer (Strong Mode)</h2>
+
+<textarea id="text" placeholder="Paste text here..." rows="10" cols="50"></textarea>
+<br><br>
+
+<button onclick="humanize()">Humanize</button>
+
+<pre id="output"></pre>
+
+<script>
+async function humanize() {
+  const text = document.getElementById("text").value;
+
+  const res = await fetch("https://YOUR-RAILWAY-URL/humanize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
+
+  const data = await res.json();
+  document.getElementById("output").innerText = data.result;
 }
-document.getElementById('inp').addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key==='Enter') run(); });
 </script>
+
 </body>
 </html>
